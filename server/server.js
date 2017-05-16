@@ -22,6 +22,14 @@ app.post('/todos', (request, response) => {
   })
 });
 
+app.get('/todos', (request, response) => {
+  Todo.find().then((todos) => {
+    response.send({todos}) // sending back as object for more flexibility
+  }, (e) => {
+    response.status(400).send(e);
+  })
+})
+
 app.listen(3000, () => {
   console.log('Listen to port 3000');
 });
