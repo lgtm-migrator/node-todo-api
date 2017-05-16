@@ -7,8 +7,12 @@ const request = require('supertest');
 const {app} = require('../server');
 const {Todo} = require('../models/todo');
 
+const todos = [{text: "First text"}, {text: "Second text"}]; // dummy values
+
 beforeEach((done) => {
-  Todo.remove({}).then(() => done()); // empty db
+  Todo.remove({}).then(() => {
+    return Todo.insertMany(todos);
+  }).then(() => done()); // empty db
 });
 
 describe('POST/todos', () => {
@@ -27,7 +31,7 @@ describe('POST/todos', () => {
         return done(err);
       }
 
-      Todo.find().then((todos) => {
+      Todo.find({text}).then((todos) => {
         expect(todos.length).toBe(1);
         expect(todos[0].text).toBe(text);
         done();
@@ -47,10 +51,22 @@ describe('POST/todos', () => {
       }
 
       Todo.find().then((todos) => {
-        expect(todos.length).toBe(0); // expect db to be empty
+        expect(todos.length).toBe(2); // expect db to be only two docs (added)
         done();
       }).catch((e) => done(e));
     });
   });
 
+});
+
+describe('GET /todos', () => {
+  it('should get all todos', (done) => {
+    request(app)
+    .get('/todos')
+    .expect(200)
+    .expect((res) => {
+      expect(res.body.todos.length).toBe(2); // custom expect
+    })
+    .end(done);
+  })
 });
