@@ -93,7 +93,7 @@ app.patch('/todos/:id', (req, res) => {
     body.completed = false;
   }
 
-  Todo.findOneAndUpdate(id, {$set: body}, {$new : true})
+  Todo.findOneAndUpdate(id, {$set: body}, {new : true})
   .then((todo) => {
     if (!todo) {
       res.status(404).send();
