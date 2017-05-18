@@ -1,18 +1,37 @@
 const {SHA256} = require('crypto-js');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
-var data = {
-  id: 1
-};
+var password = "abc123";
 
-// Takes an object and hash it: jwt.sign(obj, secret)
+// bcrypt.genSalt(10, (err, salt) => {
+//   bcrypt.hash(password, salt, (err, hash) => {
+//     console.log(hash);
+//   })
+// });
 
-var token = jwt.sign(data, '123abc');
-console.log(token);
+var hashedPassword = "$2a$10$OTYElKuS9XH78N.QpeNfgOmMeWslkxrgn9OD5v8S2exp7OZ9sB0oO";
 
-// Make sure data is not manipulated: jwt.verify(token, [this must be the right secret])
-var decoded = jwt.verify(token, '123abc');
-console.log('decoded', decoded);
+bcrypt.compare(password, hashedPassword, (err, res) => {
+  console.log(res);
+})
+
+bcrypt.compare("abcde", hashedPassword, (err, res) => {
+  console.log(res);
+})
+
+// var data = {
+//   id: 1
+// };
+//
+// // Takes an object and hash it: jwt.sign(obj, secret)
+//
+// var token = jwt.sign(data, '123abc');
+// console.log(token);
+//
+// // Make sure data is not manipulated: jwt.verify(token, [this must be the right secret])
+// var decoded = jwt.verify(token, '123abc');
+// console.log('decoded', decoded);
 
 // EXPLANATION OF HASHING
 // var message =  'I am user number 3';
