@@ -61,6 +61,15 @@ app.post('/todos', (request, response) => {
   })
 });
 
+// Private route
+app.delete('/users/me/token', authenticate, (req, res) => {
+  req.user.removeToken(req.token).then(() => {
+    res.status(200).send();
+  }, () => {
+    res.status(400).send();
+  });
+})
+
 app.get('/todos', (request, response) => {
   Todo.find().then((todos) => {
     response.send({todos}) // sending back as object for more flexibility
