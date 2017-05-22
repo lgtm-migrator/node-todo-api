@@ -49,18 +49,6 @@ app.get('/users/me', authenticate, (req, res) => {
   res.send(req.user);
 });
 
-app.post('/todos', (request, response) => {
-  var todo = new Todo({
-    text: request.body.text
-  });
-
-  todo.save().then((doc) => {
-    response.send(doc);
-  }, (e) => {
-    response.status(400).send(e);
-  })
-});
-
 // Private route
 app.delete('/users/me/token', authenticate, (req, res) => {
   req.user.removeToken(req.token).then(() => {
@@ -70,18 +58,34 @@ app.delete('/users/me/token', authenticate, (req, res) => {
   });
 })
 
-app.get('/todos', (request, response) => {
-  Todo.find().then((todos) => {
-    response.send({todos}) // sending back as object for more flexibility
+// We add authentication to set route to private
+
+app.post('/todos', authenticate, (req, res) => {
+  var todo = new Todo({
+    text: req.body.text,
+    _creator: req.user._id
+  });
+
+  todo.save().then((doc) => {
+    res.send(doc);
   }, (e) => {
-    response.status(400).send(e);
+    res.status(400).send(e);
+  })
+});
+
+app.get('/todos', authenticate, (req, res) => {
+  Todo.find({
+    _creator: req.user._id
+  }).then((todos) => {
+    res.send({todos}) // sending back as object for more flexibility
+  }, (e) => {
+    res.status(400).send(e);
   })
 })
 
-// GET /todos/1234...
-
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id;
+  var user_id = req.user._id;
 
   //Check if the id is valid
   if (!ObjectID.isValid(id)) {
@@ -89,7 +93,10 @@ app.get('/todos/:id', (req, res) => {
   }
 
   // Find in the database and attempt to send back
-  Todo.findById(id).then((todo) => {
+  Todo.findOne({
+    _id: id,
+    _creator: user_id
+  }).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
@@ -100,8 +107,9 @@ app.get('/todos/:id', (req, res) => {
   });
 });
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id;
+  var user_id = req.user._id;
 
   // Validate id
   if (!ObjectID.isValid(id)) {
@@ -109,7 +117,10 @@ app.delete('/todos/:id', (req, res) => {
   }
 
   // Find document and attempt to delete it
-  Todo.findByIdAndRemove(id).then((todo) => {
+  Todo.findOneAndRemove({
+    _id: id,
+    _creator: user_id
+  }).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
@@ -120,7 +131,7 @@ app.delete('/todos/:id', (req, res) => {
   });
 });
 
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id;
   var body = _.pick(req.body, ['text', 'completed']);
 
@@ -137,7 +148,10 @@ app.patch('/todos/:id', (req, res) => {
     body.completed = false;
   }
 
-  Todo.findOneAndUpdate(id, {$set: body}, {new : true})
+  Todo.findOneAndUpdate({
+    _id: id,
+    _creator: req.user._id
+  }, {$set: body}, {new : true})
   .then((todo) => {
     if (!todo) {
       res.status(404).send();

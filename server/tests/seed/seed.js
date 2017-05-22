@@ -17,7 +17,11 @@ const users = [{
 }, {
   _id: userTwoId,
   email: "plato@gmail.com",
-  password: "platonicworld"
+  password: "platonicworld",
+  tokens: [{
+    access: "auth",
+    token: jwt.sign({_id: userTwoId, access: "auth"}, 'abc123').toString()
+  }]
 }];
 
 const populateUsers = (done) => {
@@ -31,12 +35,16 @@ const populateUsers = (done) => {
 
 const todos = [{
   _id: new ObjectID(),
-  text: "First text"},
+  text: "First text",
+  _creator: userOneId
+},
   {
     _id: new ObjectID(), //For testing PATCH
     text: "Second text",
     completed: true,
-    completedAt: 18888}
+    completedAt: 18888,
+    _creator: userTwoId
+  }
   ]; // dummy values
 
   const populateTodos = (done) => {
