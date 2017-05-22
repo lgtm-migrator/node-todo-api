@@ -72,6 +72,26 @@ UserSchema.statics.findByToken = function(token) {
   });
 };
 
+UserSchema.statics.findByCredential = function(email, password) {
+  var User = this;
+
+  return User.findOne({email}).then((user) => {
+    if (!user) {
+      return Promise.reject();
+    }
+
+    return new Promise((resolve, reject) => {
+      bcrypt.compare(password, user.password, (err, res) => {
+        if (!res) {
+          return reject();
+        }
+        resolve(user);
+      });
+    });
+  });
+
+}
+
 // Mongoose middleware
 // http://mongoosejs.com/docs/middleware.html
 UserSchema.pre('save', function(next) {
